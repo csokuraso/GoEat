@@ -19,7 +19,15 @@ function Restaurants() {
         {restaurants.map((restaurant) => (
           <div className="product-card" key={restaurant.restaurant_id}>
             <h3>{restaurant.name}</h3>
-            <p>Ресторан №{restaurant.restaurant_id}</p>
+            {restaurant.image_url ? (
+              <img
+                src={restaurant.image_url}
+                alt={restaurant.name}
+                className="restaurant-img"
+              />
+            ) : (
+              <p>Ресторан №{restaurant.restaurant_id}</p>
+            )}
 
             <Link
               className="btn"

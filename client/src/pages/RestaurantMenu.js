@@ -38,12 +38,22 @@ function RestaurantMenu() {
       <div className="products">
         {products.map((product) => (
           <div className="product-card" key={product.item_id}>
-            <div className="product-image">🍽️</div>
-            <h3>{product.name}</h3>
-            <p>{product.price} ₴</p>
-            <button onClick={() => addToCart(product)}>
-  Додати у кошик
-</button>
+            {product.image_url ? (
+        <img 
+          src={product.image_url} 
+          alt={product.name} 
+          className="restaurant-img" 
+        />
+      ) : (
+        <div className="product-image">🍽️</div>
+      )}
+
+      <h3>{product.name}</h3>
+      <p>{product.price} ₴</p>
+      
+      <button onClick={() => addToCart(product)}>
+        Додати у кошик
+      </button>
           </div>
         ))}
       </div>
