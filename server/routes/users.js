@@ -65,21 +65,23 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/:user_id", async (req, res) => {
+router.get("/:user_id/address", async (req, res) => {
   try {
     const { user_id } = req.params;
 
     const result = await pool.query(
       `SELECT 
-        users.user_id,
-        users.username,
-        users.role_id,
-        roles.role_name
-       FROM users
-       LEFT JOIN roles ON users.role_id = roles.role_id
-       WHERE users.user_id = $1`,
+        addresses.address_id,
+        addresses.address_text
+       FROM customers
+       JOIN addresses ON customers.address_id = addresses.address_id
+       WHERE customers.user_id = $1`,
       [user_id]
     );
+
+    if (result.rows.length === 0) {
+      return res.status(404).send("Адресу не знайдено");
+    }
 
     res.json(result.rows[0]);
   } catch (err) {
@@ -111,13 +113,13 @@ router.post("/:user_id/address", async (req, res) => {
     const address = addressResult.rows[0];
 
     const customerResult = await client.query(
-  `INSERT INTO customers (user_id, address_id)
-   VALUES ($1, $2)
-   ON CONFLICT (user_id)
-   DO UPDATE SET address_id = EXCLUDED.address_id
-   RETURNING customer_id, user_id, address_id`,
-  [user_id, address.address_id]
-);
+      `INSERT INTO customers (user_id, address_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id)
+       DO UPDATE SET address_id = EXCLUDED.address_id
+       RETURNING customer_id, user_id, address_id`,
+      [user_id, address.address_id]
+    );
 
     await client.query("COMMIT");
 
@@ -132,6 +134,29 @@ router.post("/:user_id/address", async (req, res) => {
     res.status(500).send(err.message);
   } finally {
     client.release();
+  }
+});
+
+router.get("/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+
+    const result = await pool.query(
+      `SELECT 
+        users.user_id,
+        users.username,
+        users.role_id,
+        roles.role_name
+       FROM users
+       LEFT JOIN roles ON users.role_id = roles.role_id
+       WHERE users.user_id = $1`,
+      [user_id]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
   }
 });
 

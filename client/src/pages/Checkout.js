@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 function Checkout() {
@@ -7,6 +7,22 @@ function Checkout() {
 
   const [paymentMethodId, setPaymentMethodId] = useState(1); 
   const [cardData, setCardData] = useState({ number: "", expiry: "", cvv: "" });
+
+  const [user, setUser] = useState(null);
+  const [address, setAddress] = useState("");
+
+  useEffect(() => {
+  const savedUser = JSON.parse(localStorage.getItem("currentUser"));
+
+  if (savedUser) {
+    setUser(savedUser);
+
+    fetch(`http://localhost:5000/users/${savedUser.user_id}/address`)
+      .then((res) => res.json())
+      .then((data) => setAddress(data.address_text))
+      .catch(() => setAddress(""));
+  }
+}, []);
 
   const handleCardChange = (e) => {
     const { name, value } = e.target;
@@ -57,9 +73,9 @@ function Checkout() {
       <h1>Оформлення замовлення</h1>
 
       <form className="form" onSubmit={createOrder}>
-        <input placeholder="Ім'я" required />
-        <input placeholder="Телефон" required />
-        <input placeholder="Адреса доставки" required />
+       <input value={user?.username || ""} readOnly />
+       <input placeholder="Телефон" required />
+       <input value={address || "Адреса не вказана"} readOnly />
 
         <select 
           value={paymentMethodId} 
