@@ -16,6 +16,12 @@ function Checkout() {
   const createOrder = async (e) => {
     e.preventDefault();
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+
+    if (!user) {
+  setMessage("Спочатку увійдіть в акаунт");
+  return;
+}
 
     if (cart.length === 0) {
       setMessage("Кошик порожній");
@@ -28,12 +34,11 @@ function Checkout() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        customer_id: 1,
-        restaurant_id: restaurant_id,
-        address_id: 1, 
-        payment_method_id: paymentMethodId, 
-        items: cart,
-      }),
+  user_id: user.user_id,
+  restaurant_id: restaurant_id,
+  payment_method_id: paymentMethodId,
+  items: cart,
+}),
     });
 
     if (response.ok) {

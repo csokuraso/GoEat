@@ -4,13 +4,36 @@ function Orders() {
   const [orders, setOrders] = useState([]);
   const [openOrderId, setOpenOrderId] = useState(null);
   const [orderItems, setOrderItems] = useState({});
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/orders")
-      .then((res) => res.json())
-      .then((data) => setOrders(data))
-      .catch((error) => console.log(error));
-  }, []);
+  const savedUser = localStorage.getItem("currentUser");
+
+  if (savedUser) {
+    setUser(JSON.parse(savedUser));
+  }
+}, []);
+
+const loadOrders = async (currentUser) => {
+  if (!currentUser) return;
+
+  fetch(`http://localhost:5000/orders?user_id=${currentUser.user_id}`)
+    .then((res) => res.json())
+    .then((data) => setOrders(data))
+    .catch((error) => console.log(error));
+};
+
+useEffect(() => {
+  if (!user) return;
+
+  loadOrders(user);
+
+  const interval = setInterval(() => {
+    loadOrders(user);
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, [user]);
 
   const toggleOrder = async (order_id) => {
     // закрыть если уже открыт
@@ -38,21 +61,6 @@ function Orders() {
       }
     }
   };
-
-  useEffect(() => {
-  const loadOrders = () => {
-    fetch("http://localhost:5000/orders")
-      .then((res) => res.json())
-      .then((data) => setOrders(data))
-      .catch((error) => console.log(error));
-  };
-
-  loadOrders(); // первый запуск
-
-  const interval = setInterval(loadOrders, 5000); // каждые 5 сек
-
-  return () => clearInterval(interval); // очистка
-}, []);
 
 const getStatusText = (status) => {
   switch (status) {
@@ -86,7 +94,7 @@ const changeStatus = async (order_id, newStatus) => {
     return;
   }
 
-  const res = await fetch("http://localhost:5000/orders");
+ const res = await fetch(`http://localhost:5000/orders?user_id=${user.user_id}`);
   const data = await res.json();
   setOrders(data);
 };
@@ -177,7 +185,7 @@ const changeOrderStatus = async (order_id, status) => {
     return;
   }
 
-  const res = await fetch("http://localhost:5000/orders");
+  const res = await fetch(`http://localhost:5000/orders?user_id=${user.user_id}`);
   const data = await res.json();
   setOrders(data);
 };
@@ -205,20 +213,25 @@ const changeOrderStatus = async (order_id, status) => {
             <p>Дата: {new Date(order.order_date).toLocaleString()}</p>
             <p>Статус: {getStatusText(order.delivery_status) || "Створено"}</p>
             
-            <div className="status-buttons">
-              <button onClick={() => changeStatus(order.order_id, "created")}>
-                Створено
-                </button>
-                <button onClick={() => changeStatus(order.order_id, "in_progress")}>
-                  Готується
-                  </button>
-                  <button onClick={() => changeStatus(order.order_id, "on_the_way")}>
-                    В дорозі
-                    </button>
-                    <button onClick={() => changeStatus(order.order_id, "delivered")}>
-                      Доставлено
-                      </button>
-                      </div>
+            {user?.role_id === 1 && (
+  <div className="status-buttons">
+    <button onClick={() => changeStatus(order.order_id, "created")}>
+      Створено
+    </button>
+
+    <button onClick={() => changeStatus(order.order_id, "in_progress")}>
+      Готується
+    </button>
+
+    <button onClick={() => changeStatus(order.order_id, "on_the_way")}>
+      В дорозі
+    </button>
+
+    <button onClick={() => changeStatus(order.order_id, "delivered")}>
+      Доставлено
+    </button>
+  </div>
+)}
             <p>Кур'єр: {order.courier_name || "ще не призначений"}</p>
 
             <button onClick={() => toggleOrder(order.order_id)}>

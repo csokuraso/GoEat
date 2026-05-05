@@ -8,6 +8,7 @@ function Profile() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [address, setAddress] = useState("");
 
   useEffect(() => {
     const savedUser = localStorage.getItem("currentUser");
@@ -27,7 +28,7 @@ function Profile() {
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, role_id: 2 }), // Роль 2 для обычных юзеров
+        body: JSON.stringify({ username, password }),
       });
 
       if (response.ok) {
@@ -42,6 +43,31 @@ function Profile() {
       setError("Помилка з'єднання з сервером");
     }
   };
+
+  const saveAddress = async () => {
+  if (!address.trim()) {
+    alert("Введіть адресу");
+    return;
+  }
+
+  const response = await fetch(`http://localhost:5000/users/${user.user_id}/address`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      address_text: address,
+    }),
+  });
+
+  if (response.ok) {
+    alert("Адресу збережено");
+    setAddress("");
+  } else {
+    const error = await response.text();
+    alert(error);
+  }
+};
 
   if (!user) {
     return (
@@ -82,11 +108,22 @@ function Profile() {
     );
   }
 
-  // ... (остальной код профиля остается таким же)
   return (
     <main className="page">
         <h1>Профіль: {user.username}</h1>
         <button onClick={() => { localStorage.removeItem("currentUser"); setUser(null); }}>Вийти</button>
+
+        <h2>Моя адреса</h2>
+
+<input
+  placeholder="Введіть адресу доставки"
+  value={address}
+  onChange={(e) => setAddress(e.target.value)}
+/>
+
+<button onClick={saveAddress}>
+  Зберегти адресу
+</button>
     </main>
   );
 }

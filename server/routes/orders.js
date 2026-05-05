@@ -7,22 +7,35 @@ router.post("/", async (req, res) => {
 
   try {
     const {
-      customer_id,
-      restaurant_id,
-      address_id,
-      payment_method_id,
-      items,
-    } = req.body;
+  user_id,
+  restaurant_id,
+  payment_method_id,
+  items,
+} = req.body;
 
     await client.query("BEGIN");
 
+    const customerResult = await client.query(
+  `SELECT customer_id, address_id
+   FROM customers
+   WHERE user_id = $1`,
+  [user_id]
+);
+
+if (customerResult.rows.length === 0) {
+  throw new Error("Спочатку додайте адресу в профілі");
+}
+
+const customer_id = customerResult.rows[0].customer_id;
+const address_id = customerResult.rows[0].address_id;
+
     const orderResult = await client.query(
-      `INSERT INTO orders 
-       (customer_id, restaurant_id, address_id, payment_method_id, order_date)
-       VALUES ($1, $2, $3, $4, NOW())
-       RETURNING *`,
-      [customer_id, restaurant_id, address_id, payment_method_id]
-    );
+  `INSERT INTO orders 
+   (customer_id, restaurant_id, address_id, payment_method_id, order_date)
+   VALUES ($1, $2, $3, $4, NOW())
+   RETURNING *`,
+  [customer_id, restaurant_id, address_id, payment_method_id]
+);
 
     const order = orderResult.rows[0];
 
@@ -68,22 +81,56 @@ await client.query(
 
 router.get("/", async (req, res) => {
   try {
-    const result = await pool.query(`
+    const { user_id } = req.query;
+
+    if (!user_id) {
+      return res.status(400).send("Не передано user_id");
+    }
+
+    const userResult = await pool.query(
+      "SELECT role_id FROM users WHERE user_id = $1",
+      [user_id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).send("Користувача не знайдено");
+    }
+
+    const role_id = userResult.rows[0].role_id;
+
+    let query = `
       SELECT 
-  orders.*,
-  restaurants.name AS restaurant_name,
-  payment_methods.method_name,
-  deliveries.delivery_status,
-  deliveries.courier_id,
-  users.username AS courier_name
-FROM orders
-LEFT JOIN restaurants ON orders.restaurant_id = restaurants.restaurant_id
-LEFT JOIN payment_methods ON orders.payment_method_id = payment_methods.payment_method_id
-LEFT JOIN deliveries ON deliveries.order_id = orders.order_id
-LEFT JOIN couriers ON deliveries.courier_id = couriers.courier_id
-LEFT JOIN users ON couriers.user_id = users.user_id
-ORDER BY orders.order_date DESC
-    `);
+        orders.*,
+        restaurants.name AS restaurant_name,
+        payment_methods.method_name,
+        deliveries.delivery_status,
+        deliveries.courier_id,
+        users.username AS courier_name
+      FROM orders
+      LEFT JOIN restaurants ON orders.restaurant_id = restaurants.restaurant_id
+      LEFT JOIN payment_methods ON orders.payment_method_id = payment_methods.payment_method_id
+      LEFT JOIN deliveries ON deliveries.order_id = orders.order_id
+      LEFT JOIN couriers ON deliveries.courier_id = couriers.courier_id
+      LEFT JOIN users ON couriers.user_id = users.user_id
+    `;
+
+    let result;
+
+    if (role_id === 1) {
+      result = await pool.query(query + " ORDER BY orders.order_date DESC");
+    } else {
+      result = await pool.query(
+  query + `
+    WHERE orders.customer_id IN (
+      SELECT customer_id
+      FROM customers
+      WHERE user_id = $1
+    )
+    ORDER BY orders.order_date DESC
+  `,
+  [user_id]
+);
+    }
 
     res.json(result.rows);
   } catch (err) {
