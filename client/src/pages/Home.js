@@ -71,32 +71,59 @@ function Home() {
   {reviews.length === 0 ? (
     <p className="section-subtitle">Поки що немає відгуків.</p>
   ) : (
-    <div className="reviews">
-      {reviews.map((review) => (
-        <div className="review-card" key={review.review_id}>
-          <h3>{review.username || "Клієнт"}</h3>
-          <p className="rating">Оцінка: {review.rating} / 5</p>
-          <p>{review.comment || "Без коментаря"}</p>
+    <div className="reviews-marquee">
+  <div className="reviews-track">
+    {[...reviews, ...reviews].map((review, index) => (
+      <div className="review-card review-marquee-card" key={`${review.review_id}-${index}`}>
+        <h3>{review.username || "Клієнт"}</h3>
+        <p className="rating">Оцінка: {review.rating} / 5</p>
+        <p>{review.comment || "Без коментаря"}</p>
 
-          {review.restaurant_name && (
-            <p className="review-restaurant">
-              Ресторан: {review.restaurant_name}
-            </p>
-          )}
-        </div>
-      ))}
-    </div>
+        {review.restaurant_name && (
+          <p className="review-restaurant">
+            Ресторан: {review.restaurant_name}
+          </p>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
   )}
 </section>
 
     <section className="home-section contact-section">
-  <h2>Зв'язатися з нами</h2>
+  <div className="contact-card">
+    <div>
+      <h2>Зв'язатися з нами</h2>
+      <p className="contact-subtitle">
+        Маєте питання? Ми завжди поруч.
+      </p>
+    </div>
 
-  <div className="contact-content">
-    <div className="contact-info">
-      <p><strong>Телефон:</strong> +380 00 000 00 00</p>
-      <p><strong>Email:</strong> support@deliverygo.com</p>
-      <p><strong>Адрес:</strong> г. Запоріжжя</p>
+    <div className="contact-items">
+      <div className="contact-item">
+        <span>☏</span>
+        <div>
+          <strong>Телефон</strong>
+          <p>+380 00 000 00 00</p>
+        </div>
+      </div>
+
+      <div className="contact-item">
+        <span>✉</span>
+        <div>
+          <strong>Email</strong>
+          <p>support@deliverygo.com</p>
+        </div>
+      </div>
+
+      <div className="contact-item">
+        <span>⛫</span>
+        <div>
+          <strong>Адреса</strong>
+          <p>м. Запоріжжя</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>

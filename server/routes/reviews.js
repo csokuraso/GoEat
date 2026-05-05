@@ -24,9 +24,13 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT *
+      SELECT 
+        reviews.*,
+        users.username
       FROM reviews
-      ORDER BY review_id DESC
+      LEFT JOIN customers ON reviews.customer_id = customers.customer_id
+      LEFT JOIN users ON customers.user_id = users.user_id
+      ORDER BY reviews.review_id DESC
     `);
 
     res.json(result.rows);
