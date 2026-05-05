@@ -36,3 +36,13 @@
     transform: rotate(360deg);
   }
 }
+
+.delete-btn {
+  margin-top: 12px;
+  background: #ef4444 !important;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #b91c1c !important;
+}

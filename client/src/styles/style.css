@@ -377,7 +377,7 @@ nav a:hover {
   border-right: 2px solid #ff6b1a;
   border-bottom: 2px solid #ff6b1a;
 
-  border-radius: 0; /* убираем скругление */
+  border-radius: 0; 
 }
 
 .home-section h2 {
@@ -422,18 +422,39 @@ nav a:hover {
 }
 
 .restaurant-img {
-  width: 100%; /* Фото занимает всю ширину карточки */
-  height: 200px; /* Фиксированная высота для всех фото */
-  object-fit: cover; /* Масштабирует фото так, чтобы оно заполнило область без искажений */
-  border-radius: 10px; /* Закругленные углы, чтобы подходило под стиль карточки */
-  margin-bottom: 12px; /* Отступ снизу до кнопки */
+  width: 100%;
+  height: 200px; 
+  object-fit: cover;
+  border-radius: 10px; 
+  margin-bottom: 12px; 
   display: block;
 }
 
-/* Корректируем карточку, чтобы кнопка всегда была внизу */
+
 .product-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 400px; /* Увеличиваем минимальную высоту, так как теперь есть фото */
+  min-height: 400px;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.status-buttons button {
+  background: #0046b8;
+  color: white;
+  border: none;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.status-buttons button:hover {
+  background: #ff6b1a;
 }
