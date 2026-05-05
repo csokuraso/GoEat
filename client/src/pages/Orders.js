@@ -165,32 +165,6 @@ const addReview = async (order) => {
   }
 };
 
-const changeOrderStatus = async (order_id, status) => {
-  const response = await fetch(
-    `http://localhost:5000/orders/${order_id}/order-status`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        order_status: status,
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    alert(error);
-    return;
-  }
-
-  const res = await fetch(`http://localhost:5000/orders?user_id=${user.user_id}`);
-  const data = await res.json();
-  setOrders(data);
-};
-
-
   return (
     <main className="page">
       <h1>Мої замовлення</h1>

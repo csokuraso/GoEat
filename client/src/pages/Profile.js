@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -7,7 +6,6 @@ function Profile() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
   const [address, setAddress] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
@@ -25,35 +23,6 @@ useEffect(() => {
       .catch(() => setAddress(""));
   }
 }, []);
-
-  const saveUsername = async () => {
-  if (!username.trim()) {
-    alert("Введіть ім'я");
-    return;
-  }
-
-  const response = await fetch(`http://localhost:5000/users/${user.user_id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      username,
-    }),
-  });
-
-  if (response.ok) {
-    const updatedUser = await response.json();
-
-    setUser(updatedUser);
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-
-    alert("Ім'я оновлено");
-  } else {
-    const error = await response.text();
-    alert(error);
-  }
-};
 
 const saveProfile = async () => {
   if (!username.trim()) {
@@ -106,7 +75,6 @@ const saveProfile = async () => {
         setUser(data);
         localStorage.setItem("currentUser", JSON.stringify(data));
       } else {
-        const message = await response.text();
         setError(isRegistering ? "Цей логін уже зайнятий" : "Невірний логін або пароль");
       }
     } catch (err) {
