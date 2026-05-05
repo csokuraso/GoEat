@@ -9,17 +9,87 @@ function Profile() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const [address, setAddress] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem("currentUser");
-    if (savedUser) setUser(JSON.parse(savedUser));
-  }, []);
+useEffect(() => {
+  const savedUser = localStorage.getItem("currentUser");
+
+  if (savedUser) {
+    const parsedUser = JSON.parse(savedUser);
+    setUser(parsedUser);
+    setUsername(parsedUser.username);
+
+    fetch(`http://localhost:5000/users/${parsedUser.user_id}/address`)
+      .then((res) => res.json())
+      .then((data) => setAddress(data.address_text))
+      .catch(() => setAddress(""));
+  }
+}, []);
+
+  const saveUsername = async () => {
+  if (!username.trim()) {
+    alert("Введіть ім'я");
+    return;
+  }
+
+  const response = await fetch(`http://localhost:5000/users/${user.user_id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username,
+    }),
+  });
+
+  if (response.ok) {
+    const updatedUser = await response.json();
+
+    setUser(updatedUser);
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+    alert("Ім'я оновлено");
+  } else {
+    const error = await response.text();
+    alert(error);
+  }
+};
+
+const saveProfile = async () => {
+  if (!username.trim()) {
+    alert("Введіть ім'я");
+    return;
+  }
+
+  const response = await fetch(`http://localhost:5000/users/${user.user_id}/profile`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username,
+      password: newPassword,
+    }),
+  });
+
+  if (response.ok) {
+    const updatedUser = await response.json();
+
+    setUser(updatedUser);
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+    setNewPassword("");
+
+    alert("Профіль оновлено");
+  } else {
+    const error = await response.text();
+    alert(error);
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Определяем адрес в зависимости от режима
     const url = isRegistering 
       ? "http://localhost:5000/users" 
       : "http://localhost:5000/users/login";
@@ -109,23 +179,70 @@ function Profile() {
   }
 
   return (
-    <main className="page">
-        <h1>Профіль: {user.username}</h1>
-        <button onClick={() => { localStorage.removeItem("currentUser"); setUser(null); }}>Вийти</button>
+  <main className="page profile-page">
+    <div className="profile-layout">
+      <aside className="profile-sidebar">
+        <div className="profile-avatar">
+          {user.username.charAt(0).toUpperCase()}
+        </div>
 
-        <h2>Моя адреса</h2>
+        <h2>{user.username}</h2>
+        <p>Користувач GoEats</p>
 
-<input
-  placeholder="Введіть адресу доставки"
-  value={address}
-  onChange={(e) => setAddress(e.target.value)}
-/>
+        <button
+          className="logout-btn"
+          onClick={() => {
+            localStorage.removeItem("currentUser");
+            setUser(null);
+          }}
+        >
+          Вийти
+        </button>
+      </aside>
 
-<button onClick={saveAddress}>
-  Зберегти адресу
-</button>
-    </main>
-  );
+      <section className="profile-main-card">
+        <h1>Профіль</h1>
+        <p className="profile-subtitle">
+          Керуйте особистими даними та адресою доставки
+        </p>
+
+        <div className="profile-grid">
+          <div className="profile-field">
+            <label>Ім'я користувача</label>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
+          <div className="profile-field">
+            <label>Новий пароль</label>
+            <input
+              type="password"
+              placeholder="Залиште пустим, якщо не змінюєте"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="profile-field profile-field-wide">
+            <label>Адреса доставки</label>
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Введіть адресу доставки"
+            />
+          </div>
+        </div>
+
+        <div className="profile-actions">
+          <button onClick={saveProfile}>Зберегти профіль</button>
+          <button onClick={saveAddress}>Зберегти адресу</button>
+        </div>
+      </section>
+    </div>
+  </main>
+);
 }
 
 export default Profile;

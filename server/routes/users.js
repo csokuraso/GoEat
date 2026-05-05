@@ -160,4 +160,68 @@ router.get("/:user_id", async (req, res) => {
   }
 });
 
+router.patch("/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).send("Ім'я не вказано");
+    }
+
+    const result = await pool.query(
+      `UPDATE users
+       SET username = $1
+       WHERE user_id = $2
+       RETURNING user_id, username, role_id`,
+      [username, user_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).send("Користувача не знайдено");
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
+router.patch("/:user_id/profile", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { username, password } = req.body;
+
+    if (!username.trim()) {
+      return res.status(400).send("Ім'я не вказано");
+    }
+
+    let result;
+
+    if (password && password.trim()) {
+      result = await pool.query(
+        `UPDATE users
+         SET username = $1, password = $2
+         WHERE user_id = $3
+         RETURNING user_id, username, role_id`,
+        [username, password, user_id]
+      );
+    } else {
+      result = await pool.query(
+        `UPDATE users
+         SET username = $1
+         WHERE user_id = $2
+         RETURNING user_id, username, role_id`,
+        [username, user_id]
+      );
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
 module.exports = router;
