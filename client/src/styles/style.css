@@ -1213,3 +1213,7 @@ nav a:hover {
   border: 2px solid #fff6df;
   pointer-events: none;
 }
+
+.st-btn {
+  font-size: 20px
+}
