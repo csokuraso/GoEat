@@ -1131,3 +1131,35 @@ nav a:hover {
   border-radius: 10px;
   font-weight: bold;
 }
+
+.order-main-info h3 {
+  font-size: 30px; 
+}
+
+.order-meta, 
+.courier-info {
+  font-size: 25px;
+  margin: 6px 0;
+  color: #333;
+}
+
+.order-meta strong {
+  font-size: 20px;
+}
+
+.status-badge {
+  font-size: 25px;
+}
+
+.action-link {
+  font-size: 20px;
+}
+
+.order-details-expand h4 {
+  font-size: 25px;
+}
+
+.item-row {
+  padding: 10px 0;  
+  font-size: 20px;
+}
