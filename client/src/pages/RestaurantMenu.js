@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 function RestaurantMenu() {
   const { restaurant_id } = useParams();
   const [products, setProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("Всі"); 
+  const [selectedCategory, setSelectedCategory] = useState("Всі"); // Состояние для фильтра
 
   useEffect(() => {
     fetch(`http://localhost:5000/menu/restaurant/${restaurant_id}`)
@@ -15,6 +15,7 @@ function RestaurantMenu() {
 
   const categories = ["Всі", ...new Set(products.map((p) => p.category_text).filter(Boolean))];
 
+  // Фильтруем продукты в зависимости от выбранной категории
   const filteredProducts = selectedCategory === "Всі" 
     ? products 
     : products.filter(product => product.category_text === selectedCategory);
