@@ -1188,3 +1188,28 @@ nav a:hover {
   border-top: 1px solid #ff8a3d;
   flex-wrap: wrap;
 }
+
+.cart-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff3b30;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff6df;
+  pointer-events: none;
+}
