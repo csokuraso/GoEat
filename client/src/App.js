@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import Home from "./pages/Home";
 import Cart from "./pages/Cart";
@@ -13,6 +15,7 @@ import "./styles/style.css";
 
 function App() {
   return (
+    <div className="App">
     <BrowserRouter>
       <Header />
 
@@ -26,6 +29,13 @@ function App() {
         <Route path="/restaurants/:restaurant_id/menu" element={<RestaurantMenu />} />
       </Routes>
     </BrowserRouter>
+    <ToastContainer 
+        position="bottom-right" 
+        autoClose={2000} 
+        hideProgressBar={false}
+        theme="colored"
+      />
+    </div>
   );
 }
 

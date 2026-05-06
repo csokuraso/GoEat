@@ -33,10 +33,13 @@ function Cart() {
               <p>Ціна: {item.price} ₴</p>
               <p>Кількість: {item.quantity}</p>
               <p>Сума: {Number(item.price) * item.quantity} ₴</p>
-
-              <button onClick={() => removeItem(item.item_id)}>
-                Видалити
-              </button>
+              <button className="delete-btn" onClick={() => removeItem(item.item_id)}>
+                  <img 
+                    src="https://cdn-icons-png.flaticon.com/512/3096/3096673.png" 
+                    alt="Видалити" 
+                    className="delete-icon"
+                  />
+                </button>
             </div>
           ))}
 

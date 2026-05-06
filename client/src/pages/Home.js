@@ -16,6 +16,7 @@ function Home() {
       .catch((error) => console.log(error));
   }, []);
 
+
   return (
     <>
       <main className="hero">
