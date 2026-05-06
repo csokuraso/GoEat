@@ -105,7 +105,7 @@ function Home() {
         <span>☏</span>
         <div>
           <strong>Телефон</strong>
-          <p>+380 00 000 00 00</p>
+          <p>+380(61)769-82-67</p>
         </div>
       </div>
 
@@ -113,7 +113,7 @@ function Home() {
         <span>✉</span>
         <div>
           <strong>Email</strong>
-          <p>support@deliverygo.com</p>
+          <p>support@goeats.com</p>
         </div>
       </div>
 
