@@ -8,13 +8,21 @@ body {
   font-family: "Arial", sans-serif;
   background: #fff6df;
   color: #0046b8;
+  overflow-x: hidden;
 }
 
 a {
   text-decoration: none;
 }
 
+.page {
+  border-bottom: 2px solid #ff6b1a;
+  border-radius: 0 0 14px 14px;
+  min-height: calc(100vh - 80px);
+}
+
 .header {
+  width: 100%;
   max-width: 1880px;
   margin: 20px auto 0;
   padding: 18px 28px;
@@ -306,7 +314,7 @@ nav a:hover {
   width: 100%;
   max-width: 870px;
   object-fit: contain;
-  transform: translateX(40px);
+transform: none;
 }
 
 .categories h2 {
@@ -411,7 +419,8 @@ nav a:hover {
 
 .order-product {
   display: grid;
-  grid-template-columns: 1fr 140px 100px;
+  grid-template-columns: 1fr auto auto;
+  min-width: 0;
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid #ff8a3d;
@@ -701,7 +710,7 @@ nav a:hover {
 .reviews-track {
   display: flex;
   gap: 20px;
-  width: max-content;
+  width: 100%; 
   animation: reviewsRun 25s linear infinite;
 }
 
@@ -710,9 +719,9 @@ nav a:hover {
 }
 
 .review-marquee-card {
-  min-width: 500px;
-  max-width: 500px;
-  min-height: 100px;
+  min-width: 280px;      /* было 500px → ломало */
+  max-width: 100%;
+  flex: 0 0 auto;
 
   background: #fffaf0;
   border: 2px solid #ff6b1a;
@@ -891,16 +900,16 @@ nav a:hover {
   margin-bottom: 20px;
 }
 
-
+.courier-info {
+  font-size: 20px;
+}
 
 .order-card {
   position: relative;
-
   border: 1px solid #ff841d;
   border-radius: 15px;
   padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  overflow: hidden;
 }
 
 .delete-btn-absolute {
@@ -927,11 +936,13 @@ nav a:hover {
 .order-main-info h3 {
   color: #004fc4;
   margin: 0 0 10px 0;
+  font-size: 30px;
 }
 
 .order-meta {
   margin: 4px 0;
   font-size: 14px;
+  font-size: 23px;
 }
 
 .status-badge {
@@ -939,6 +950,7 @@ nav a:hover {
   margin-top: 8px;
   font-weight: bold;
   color: #004fc4;
+  font-size: 20px;
 }
 
 .admin-status-panel {
@@ -946,6 +958,7 @@ nav a:hover {
   gap: 8px;
   margin: 15px 0;
   flex-wrap: wrap;
+  
 }
 
 .st-btn {
@@ -973,7 +986,7 @@ nav a:hover {
   border: none;
   color: #555;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 20px;
   text-decoration: underline;
 }
 
@@ -991,6 +1004,7 @@ nav a:hover {
   justify-content: space-between;
   padding: 5px 0;
   border-bottom: 1px dashed #ddd;
+  font-size: 20px;
 }
 
 .orders-header {
@@ -1001,6 +1015,8 @@ nav a:hover {
   padding-bottom: 10px;
   border-bottom: 2px solid #eee;
 }
+
+
 
 .delete-all-btn {
   display: flex;
