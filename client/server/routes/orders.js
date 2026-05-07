@@ -3,69 +3,44 @@ const router = express.Router();
 const pool = require("../db");
 
 router.post("/", async (req, res) => {
-  const client = await pool.connect();
-
   try {
-    const {
-      customer_id,
-      restaurant_id,
-      address_id,
-      payment_method_id,
-      items,
-    } = req.body;
+    const { user_id, restaurant_id, payment_method_id, items } = req.body;
 
-    await client.query("BEGIN");
-
-    const orderResult = await client.query(
-      `INSERT INTO orders 
-       (customer_id, restaurant_id, address_id, payment_method_id, order_date)
-       VALUES ($1, $2, $3, $4, NOW())
-       RETURNING *`,
-      [customer_id, restaurant_id, address_id, payment_method_id]
+    const result = await pool.query(
+      "SELECT * FROM create_order_from_cart($1, $2, $3, $4::jsonb)",
+      [user_id, restaurant_id, payment_method_id, JSON.stringify(items)]
     );
-
-    const order = orderResult.rows[0];
-
-    for (const item of items) {
-      await client.query(
-        `INSERT INTO order_items (order_id, item_id, quantity)
-         VALUES ($1, $2, $3)`,
-        [order.order_id, item.item_id, item.quantity]
-      );
-    }
-
-    await client.query("COMMIT");
+    const order = result.rows[0];
 
     res.json({
       message: "Замовлення створено",
       order_id: order.order_id,
     });
   } catch (err) {
-    await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).send(err.message);
-  } finally {
-    client.release();
+    const validationMessages = [
+      "Спочатку додайте адресу в профілі",
+      "Кошик порожній",
+    ];
+    const status = validationMessages.some((message) => err.message.includes(message))
+      ? 400
+      : 500;
+    res.status(status).send(err.message);
   }
 });
 
 router.get("/", async (req, res) => {
   try {
- const result = await pool.query(`
-  SELECT 
-    orders.*,
-    restaurants.name AS restaurant_name,
-    payment_methods.method_name,
-    deliveries.delivery_status,
-    users.username AS courier_name
-  FROM orders
-  LEFT JOIN restaurants ON orders.restaurant_id = restaurants.restaurant_id
-  LEFT JOIN payment_methods ON orders.payment_method_id = payment_methods.payment_method_id
-  LEFT JOIN deliveries ON deliveries.order_id = orders.order_id
-  LEFT JOIN couriers ON deliveries.courier_id = couriers.courier_id
-  LEFT JOIN users ON couriers.user_id = users.user_id
-  ORDER BY orders.order_date DESC
-`);
+    const { user_id } = req.query;
+
+    if (!user_id) {
+      return res.status(400).send("Не передано user_id");
+    }
+
+    const result = await pool.query("SELECT * FROM get_orders_for_user($1)", [
+      user_id,
+    ]);
+
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -77,23 +52,81 @@ router.get("/:order_id/items", async (req, res) => {
   try {
     const { order_id } = req.params;
 
-    const result = await pool.query(
-      `SELECT 
-        order_items.order_id,
-        order_items.item_id,
-        order_items.quantity,
-        menu_items.name,
-        menu_items.price
-      FROM order_items
-      LEFT JOIN menu_items ON order_items.item_id = menu_items.item_id
-      WHERE order_items.order_id = $1`,
-      [order_id]
-    );
+    const result = await pool.query("SELECT * FROM get_order_items($1)", [
+      order_id,
+    ]);
 
     res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).send(err.message);
+  }
+});
+
+router.patch("/:order_id/status", async (req, res) => {
+  try {
+    const { order_id } = req.params;
+    const { delivery_status } = req.body;
+
+    const result = await pool.query(
+      "SELECT manage_order_action('update_delivery_status', $1, $2) AS result",
+      [order_id, delivery_status]
+    );
+
+    res.json(result.rows[0].result);
+  } catch (err) {
+    console.error(err);
+    const status = err.message.includes("Доставка для цього замовлення не знайдена")
+      ? 404
+      : 500;
+    res.status(status).send(err.message);
+  }
+});
+
+router.delete("/:order_id", async (req, res) => {
+  try {
+    const { order_id } = req.params;
+
+    const result = await pool.query(
+      "SELECT manage_order_action('delete_order', $1, NULL) AS result",
+      [order_id]
+    );
+
+    res.json(result.rows[0].result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
+router.delete("/", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT manage_order_action('delete_all_orders', NULL, NULL) AS result"
+    );
+
+    res.json(result.rows[0].result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
+router.patch("/:order_id/order-status", async (req, res) => {
+  try {
+    const { order_id } = req.params;
+    const { order_status } = req.body;
+
+    const result = await pool.query(
+      "SELECT manage_order_action('update_order_status', $1, $2) AS result",
+      [order_id, order_status]
+    );
+
+    res.json(result.rows[0].result);
+  } catch (err) {
+    console.error(err);
+    const status = err.message.includes("Замовлення не знайдено") ? 404 : 500;
+    res.status(status).send(err.message);
   }
 });
 

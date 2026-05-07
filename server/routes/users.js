@@ -19,27 +19,16 @@ router.post("/", async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Проверка на существование
-    const existingUser = await pool.query(
-      "SELECT * FROM users WHERE username = $1",
-      [username]
-    );
-
-    if (existingUser.rows.length > 0) {
-      return res.status(400).send("Цей логін уже зайнятий");
-    }
-
     const result = await pool.query(
-      `INSERT INTO users (username, password, role_id)
-       VALUES ($1, $2, 3)
-       RETURNING user_id, username, role_id`,
+      "SELECT * FROM upsert_user_profile(NULL, $1, $2, true)",
       [username, password]
     );
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server error");
+    const status = err.message.includes("Цей логін уже зайнятий") ? 400 : 500;
+    res.status(status).send(status === 400 ? err.message : "Server error");
   }
 });
 
@@ -47,12 +36,10 @@ router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const result = await pool.query(
-      `SELECT user_id, username, role_id
-       FROM users
-       WHERE username = $1 AND password = $2`,
-      [username, password]
-    );
+    const result = await pool.query("SELECT * FROM authenticate_user($1, $2)", [
+      username,
+      password,
+    ]);
 
     if (result.rows.length === 0) {
       return res.status(401).send("Невірний логін або пароль");
@@ -69,15 +56,9 @@ router.get("/:user_id/address", async (req, res) => {
   try {
     const { user_id } = req.params;
 
-    const result = await pool.query(
-      `SELECT 
-        addresses.address_id,
-        addresses.address_text
-       FROM customers
-       JOIN addresses ON customers.address_id = addresses.address_id
-       WHERE customers.user_id = $1`,
-      [user_id]
-    );
+    const result = await pool.query("SELECT * FROM get_user_address($1)", [
+      user_id,
+    ]);
 
     if (result.rows.length === 0) {
       return res.status(404).send("Адресу не знайдено");
@@ -91,49 +72,32 @@ router.get("/:user_id/address", async (req, res) => {
 });
 
 router.post("/:user_id/address", async (req, res) => {
-  const client = await pool.connect();
-
   try {
     const { user_id } = req.params;
     const { address_text } = req.body;
 
-    if (!address_text) {
-      return res.status(400).send("Адреса не вказана");
-    }
-
-    await client.query("BEGIN");
-
-    const addressResult = await client.query(
-      `INSERT INTO addresses (address_text)
-       VALUES ($1)
-       RETURNING address_id, address_text`,
-      [address_text]
-    );
-
-    const address = addressResult.rows[0];
-
-    const customerResult = await client.query(
-      `INSERT INTO customers (user_id, address_id)
-       VALUES ($1, $2)
-       ON CONFLICT (user_id)
-       DO UPDATE SET address_id = EXCLUDED.address_id
-       RETURNING customer_id, user_id, address_id`,
-      [user_id, address.address_id]
-    );
-
-    await client.query("COMMIT");
+    const result = await pool.query("SELECT * FROM save_user_address($1, $2)", [
+      user_id,
+      address_text,
+    ]);
+    const savedAddress = result.rows[0];
 
     res.json({
       message: "Адресу збережено",
-      address,
-      customer: customerResult.rows[0],
+      address: {
+        address_id: savedAddress.address_id,
+        address_text: savedAddress.address_text,
+      },
+      customer: {
+        customer_id: savedAddress.customer_id,
+        user_id: savedAddress.user_id,
+        address_id: savedAddress.address_id,
+      },
     });
   } catch (err) {
-    await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).send(err.message);
-  } finally {
-    client.release();
+    const status = err.message.includes("Адреса не вказана") ? 400 : 500;
+    res.status(status).send(err.message);
   }
 });
 
@@ -142,7 +106,7 @@ router.get("/:user_id", async (req, res) => {
     const { user_id } = req.params;
 
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         users.user_id,
         users.username,
         users.role_id,
@@ -165,16 +129,9 @@ router.patch("/:user_id", async (req, res) => {
     const { user_id } = req.params;
     const { username } = req.body;
 
-    if (!username) {
-      return res.status(400).send("Ім'я не вказано");
-    }
-
     const result = await pool.query(
-      `UPDATE users
-       SET username = $1
-       WHERE user_id = $2
-       RETURNING user_id, username, role_id`,
-      [username, user_id]
+      "SELECT * FROM upsert_user_profile($1, $2, NULL, false)",
+      [user_id, username]
     );
 
     if (result.rows.length === 0) {
@@ -184,7 +141,8 @@ router.patch("/:user_id", async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).send(err.message);
+    const status = err.message.includes("Ім'я не вказано") ? 400 : 500;
+    res.status(status).send(err.message);
   }
 });
 
@@ -193,34 +151,20 @@ router.patch("/:user_id/profile", async (req, res) => {
     const { user_id } = req.params;
     const { username, password } = req.body;
 
-    if (!username.trim()) {
-      return res.status(400).send("Ім'я не вказано");
-    }
+    const result = await pool.query(
+      "SELECT * FROM upsert_user_profile($1, $2, $3, false)",
+      [user_id, username, password]
+    );
 
-    let result;
-
-    if (password && password.trim()) {
-      result = await pool.query(
-        `UPDATE users
-         SET username = $1, password = $2
-         WHERE user_id = $3
-         RETURNING user_id, username, role_id`,
-        [username, password, user_id]
-      );
-    } else {
-      result = await pool.query(
-        `UPDATE users
-         SET username = $1
-         WHERE user_id = $2
-         RETURNING user_id, username, role_id`,
-        [username, user_id]
-      );
+    if (result.rows.length === 0) {
+      return res.status(404).send("Користувача не знайдено");
     }
 
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).send(err.message);
+    const status = err.message.includes("Ім'я не вказано") ? 400 : 500;
+    res.status(status).send(err.message);
   }
 });
 

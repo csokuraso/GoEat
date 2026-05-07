@@ -4,10 +4,7 @@ const pool = require("../db");
 
 router.get("/", async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM restaurants ORDER BY restaurant_id ASC"
-    );
-
+    const result = await pool.query("SELECT * FROM get_restaurants()");
     res.json(result.rows);
   } catch (err) {
     console.error(err);

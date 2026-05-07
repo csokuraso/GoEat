@@ -1,0 +1,8 @@
+[33mcommit 261b82b151230ee2cd90437256c2a0faf2b11b00[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfuture[m[33m, [m[1;31morigin/future[m[33m)[m
+Author: csokuraso <siia.panchenko@gmail.com>
+Date:   Wed May 6 22:30:10 2026 +0200
+
+    change font size in page orders + add 2 restaurants
+
+ client/src/styles/style.css | 4 [32m++++[m
+ 1 file changed, 4 insertions(+)
