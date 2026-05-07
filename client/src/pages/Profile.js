@@ -18,8 +18,13 @@ useEffect(() => {
     setUsername(parsedUser.username);
 
     fetch(`http://localhost:5000/users/${parsedUser.user_id}/address`)
-      .then((res) => res.json())
-      .then((data) => setAddress(data.address_text))
+      .then((res) => {
+        if (!res.ok) return null; 
+        return res.json();
+      })
+      .then((data) => {
+        if (data) setAddress(data.address_text || "");
+      })
       .catch(() => setAddress(""));
   }
 }, []);
@@ -82,7 +87,7 @@ const saveProfile = async () => {
     }
   };
 
-  const saveAddress = async () => {
+const saveAddress = async () => {
   if (!address.trim()) {
     alert("Введіть адресу");
     return;
@@ -90,17 +95,12 @@ const saveProfile = async () => {
 
   const response = await fetch(`http://localhost:5000/users/${user.user_id}/address`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      address_text: address,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ address_text: address }),
   });
 
   if (response.ok) {
     alert("Адресу збережено");
-    setAddress("");
   } else {
     const error = await response.text();
     alert(error);
@@ -157,15 +157,17 @@ const saveProfile = async () => {
         <h2>{user.username}</h2>
         <p>Користувач GoEats</p>
 
-        <button
-          className="logout-btn"
-          onClick={() => {
-            localStorage.removeItem("currentUser");
-            setUser(null);
-          }}
-        >
-          Вийти
-        </button>
+<button
+  className="logout-btn"
+  onClick={() => {
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("cart");
+    window.dispatchEvent(new Event("cartUpdated"));
+    setUser(null);
+  }}
+>
+  Вийти
+</button>
       </aside>
 
       <section className="profile-main-card">

@@ -55,13 +55,10 @@ router.post("/login", async (req, res) => {
 router.get("/:user_id/address", async (req, res) => {
   try {
     const { user_id } = req.params;
-
-    const result = await pool.query("SELECT * FROM get_user_address($1)", [
-      user_id,
-    ]);
+    const result = await pool.query("SELECT * FROM get_user_address($1)", [user_id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).send("Адресу не знайдено");
+      return res.json({ address_text: "" });
     }
 
     res.json(result.rows[0]);

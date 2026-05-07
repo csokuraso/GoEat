@@ -13,6 +13,21 @@ function Cart() {
     const updatedCart = cart.filter((item) => item.item_id !== item_id);
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
+    window.dispatchEvent(new Event("cartUpdated"));
+  };
+
+  const changeQuantity = (item_id, delta) => {
+    const updatedCart = cart
+      .map((item) =>
+        item.item_id === item_id
+          ? { ...item, quantity: item.quantity + delta }
+          : item
+      )
+      .filter((item) => item.quantity > 0);
+
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    window.dispatchEvent(new Event("cartUpdated"));
   };
 
   const total = cart.reduce((sum, item) => {
@@ -31,15 +46,22 @@ function Cart() {
             <div className="cart-item" key={item.item_id}>
               <h3>{item.name}</h3>
               <p>Ціна: {item.price} ₴</p>
-              <p>Кількість: {item.quantity}</p>
+
+              <div className="quantity-controls">
+                <button onClick={() => changeQuantity(item.item_id, -1)}>−</button>
+                <span>{item.quantity}</span>
+                <button onClick={() => changeQuantity(item.item_id, 1)}>+</button>
+              </div>
+
               <p>Сума: {Number(item.price) * item.quantity} ₴</p>
+
               <button className="delete-btn" onClick={() => removeItem(item.item_id)}>
-                  <img 
-                    src="https://cdn-icons-png.flaticon.com/512/3096/3096673.png" 
-                    alt="Видалити" 
-                    className="delete-icon"
-                  />
-                </button>
+                <img
+                  src="https://cdn-icons-png.flaticon.com/512/3096/3096673.png"
+                  alt="Видалити"
+                  className="delete-icon"
+                />
+              </button>
             </div>
           ))}
 

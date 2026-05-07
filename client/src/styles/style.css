@@ -1217,3 +1217,38 @@ nav a:hover {
 .st-btn {
   font-size: 20px
 }
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.quantity-controls button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #0046b8;
+  background: white;
+  color: #0046b8;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-controls button:hover {
+  background: #0046b8;
+  color: white;
+}
+
+.quantity-controls span {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0046b8;
+  min-width: 24px;
+  text-align: center;
+}
